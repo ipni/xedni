@@ -1,0 +1,73 @@
+openapi: 3.0.3
+info:
+  title: IPNI Multihash Sampling API
+  description: This exposes the ability to sample advertisement entries of a provider by context ID deterministically.
+  version: 0.0.0
+servers:
+  - url: 'http://localhost:40080'
+paths:
+  /ipni/v0/sample/{provider-id}/{context-id}:
+    get:
+      summary: Sample a set of multihashes ingested by IPNI for a given ContextID.
+      parameters:
+        - name: provider-id
+          in: path
+          required: true
+          example: 12D3KooWN34sqTaMfZE3ReELyVF3no3qU7883Mi6j2VWsv6dwhPL
+          schema:
+            type: string
+        - name: context-id
+          in: path
+          required: true
+          description: encoded in base-58
+          schema:
+            type: string
+        - name: seed
+          in: query
+          required: false
+          description: The seed for deterministic sampling.
+        - name: max
+          in: query
+          required: false
+          description: The maximum number of multihashes to return. If unspecified, at most one multihash is returned.
+        - name: epoch
+          in: query
+          required: false
+          description: The IPNI ingestion epoch.
+      responses:
+        '200':
+          description: 'At least one mutlihash was sampled successfully.'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  samples:
+                    type: array
+                    items:
+                      type: string
+        '404':
+          description: 'No status found for the given ID.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: 'An internal server error occurred.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '503':
+          description: 'Service temporarily unavailable. Please try again later.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+components:
+  schemas:
+    error:
+      type: object
+      properties:
+        error:
+          type: string
