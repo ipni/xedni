@@ -13,13 +13,14 @@ paths:
         - name: provider-id
           in: path
           required: true
+          description: The multibase encoded peer ID of the provider.
           example: 12D3KooWN34sqTaMfZE3ReELyVF3no3qU7883Mi6j2VWsv6dwhPL
           schema:
             type: string
         - name: context-id
           in: path
           required: true
-          description: encoded in base-58
+          description: The multibase encoded context ID.
           schema:
             type: string
         - name: seed
@@ -33,7 +34,7 @@ paths:
         - name: epoch
           in: query
           required: false
-          description: The IPNI ingestion epoch.
+          description: The IPNI federation epoch. The only acceptable value is currently zero.
       responses:
         '200':
           description: 'At least one mutlihash was sampled successfully.'
