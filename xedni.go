@@ -50,6 +50,10 @@ func (x *Xedni) Start(context.Context) error {
 	return nil
 }
 
+func (x *Xedni) Store() *Store {
+	return x.store
+}
+
 func (x *Xedni) Shutdown(ctx context.Context) (_err error) {
 	defer func() {
 		err := x.store.Close()
