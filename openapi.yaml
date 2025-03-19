@@ -1,4 +1,4 @@
-openapi: 3.0.3
+openapi: 3.1.1
 info:
   title: IPNI Multihash Sampling API
   description: This exposes the ability to sample advertisement entries of a provider by context ID deterministically.
@@ -20,33 +20,56 @@ paths:
         - name: context-id
           in: path
           required: true
-          description: The multibase encoded context ID.
+          description: The base64 encoded context ID.
+          example: AXESIFVcxmAvWdc3BbQUKlYcp2Z2DuO2w5Fo4jmIC8IbMX00
           schema:
             type: string
-        - name: seed
+        - name: beacon
           in: query
           required: false
-          description: The seed for deterministic sampling.
+          description: The hex encoded randomness beacon for deterministic sampling. Ensures repeatability of samples. Must not exceed 32 bytes.
+          example: 3439d92d58e47d342131d446a3abe264396dd264717897af30525c98408c834f
+          schema:
+            type: string
+            maxLength: 32
         - name: max
           in: query
           required: false
           description: The maximum number of multihashes to return. If unspecified, at most one multihash is returned.
-        - name: epoch
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 10
+        - name: federation_epoch
           in: query
           required: false
-          description: The IPNI federation epoch. The only acceptable value is currently zero.
+          description: The IPNI federation epoch, currently only accepting zero, pending review of IPNI federation protocol.
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 0
       responses:
         '200':
           description: 'At least one mutlihash was sampled successfully.'
           content:
             application/json:
               schema:
+                example: {
+                  "samples": [
+                    { "/": "bafy2bzacedrhhowwtcv52pwy72wqnmbgk5sl3muadleyv4zluxdjroi357tq6" },
+                    { "/": "bafy2bzacecy44lm6drfx22yun4uweigmab64spc46rncgzy2c5lllmityomxw" },
+                    { "/": "bafy2bzaceaao62txgy2vm2e3zpr7xisgdvdyuotjvzmoil5qkhvgjhqcnsn7c" }
+                  ]
+                }
                 type: object
                 properties:
                   samples:
                     type: array
                     items:
-                      type: string
+                      type: object
+                      properties:
+                        '/':
+                          type: string
         '404':
           description: 'No status found for the given ID.'
           content:
