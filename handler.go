@@ -9,12 +9,11 @@ import (
 
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/mr-tron/base58"
-	"github.com/multiformats/go-multihash"
 )
 
 type (
 	SampleResponse struct {
-		Samples []multihash.Multihash `json:"samples"`
+		Samples []string `json:"samples"`
 	}
 	Error struct {
 		Error string `json:"error"`
@@ -93,13 +92,17 @@ func (x *Xedni) sampleHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var response SampleResponse
-	response.Samples, err = x.store.Sample(r.Context(), pop)
+	samples, err := x.store.Sample(r.Context(), pop)
 	if err != nil {
 		logger.Errorw("Failed to sample store", "error", err)
 		x.writeJson(w, http.StatusInternalServerError, Error{
 			Error: "failed to sample store",
 		})
 		return
+	}
+	response.Samples = make([]string, len(samples))
+	for i, sample := range samples {
+		response.Samples[i] = sample.B58String()
 	}
 	x.writeJson(w, http.StatusOK, response)
 }
