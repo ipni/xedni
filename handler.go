@@ -58,7 +58,7 @@ func (x *Xedni) sampleHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		pop.Beacon = make([]byte, 0, 32)
+		pop.Beacon = make([]byte, 32)
 		if _, err := rand.Read(pop.Beacon); err != nil {
 			logger.Errorw("Failed to generate beacon", "error", err)
 			x.writeJson(w, http.StatusInternalServerError, Error{
