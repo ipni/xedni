@@ -5,15 +5,17 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/binary"
+	"errors"
 	"fmt"
+	"math/rand/v2"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/ipni/go-indexer-core"
 	"github.com/libp2p/go-libp2p/core/peer"
 	_ "github.com/marcboeker/go-duckdb"
-	"github.com/mr-tron/base58"
 	"github.com/multiformats/go-multihash"
 	"github.com/parquet-go/parquet-go"
 	"github.com/parquet-go/parquet-go/compress/zstd"
@@ -55,7 +57,10 @@ func (s *Store) Sample(ctx context.Context, population Population) ([]multihash.
 	}
 
 	pid := population.ProviderID.String()
-	ctxid := base58.Encode(population.ContextID)
+	// Use URL encoding for contextID to avoid path separator issues while making
+	// directory structure readable relative to incoming requests for ease of
+	// debugging.
+	ctxid := base64.URLEncoding.EncodeToString(population.ContextID)
 	dataset := filepath.Join(s.home, pid, ctxid, "*.parquet")
 
 	// Prepared statement for sample size and seed doesn't seem to work. Hence, the
@@ -65,7 +70,14 @@ func (s *Store) Sample(ctx context.Context, population Population) ([]multihash.
 		dataset, population.MaxSamples, seed)
 	rows, err := s.db.QueryContext(ctx, query)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query: %w", err)
+		switch {
+		case
+			strings.Contains(err.Error(), "No files found that match the pattern"),
+			errors.Is(err, sql.ErrNoRows):
+			return nil, nil
+		default:
+			return nil, fmt.Errorf("failed to query: %w", err)
+		}
 	}
 	defer func() { _ = rows.Close() }()
 
@@ -89,16 +101,19 @@ func seedFromBeacon(beacon []byte) (int32, error) {
 		return 0, fmt.Errorf("beacon must be at least 1 and at most 32 bytes, got length: %d", len(beacon))
 	}
 
-	split := beaconLength / 2
-	highBytes := beacon[:split]
-	lowBytes := beacon[split:]
+	mid := beaconLength / 2
+	left := beacon[:mid]
+	right := beacon[mid:]
 
-	// Extract a positive in32 value from the beacon to use as seed for reservoir
-	// sampling. DuckDB does not support int64 seeds by the looks of it.
-	highPart := binary.LittleEndian.Uint16(highBytes[:min(2, split)])
-	lowPart := binary.LittleEndian.Uint16(lowBytes[:min(2, split)])
-	unsignedValue := (uint32(highPart) << 16) | uint32(lowPart)
-	return int32(unsignedValue & 0x7FFFFFFF), nil
+	var leftPadded, rightPadded [8]byte
+	copy(leftPadded[8-min(8, len(left)):], left)
+	copy(rightPadded[8-min(8, len(right)):], right)
+
+	seed1 := binary.LittleEndian.Uint64(leftPadded[:])
+	seed2 := binary.LittleEndian.Uint64(rightPadded[:])
+
+	// Generate an int32 seed for the reservoir sampling algorithm.
+	return rand.New(rand.NewPCG(seed1, seed2)).Int32(), nil
 }
 
 func (s *Store) Get(multihash multihash.Multihash) ([]indexer.Value, bool, error) {
@@ -111,7 +126,10 @@ func (s *Store) Put(value indexer.Value, mhs ...multihash.Multihash) error {
 	}
 
 	pid := value.ProviderID.String()
-	ctxid := base58.Encode(value.ContextID)
+	// Use URL encoding for contextID to avoid path separator issues while making
+	// directory structure readable relative to incoming requests for ease of
+	// debugging.
+	ctxid := base64.URLEncoding.EncodeToString(value.ContextID)
 	basename := fmt.Sprintf("%d.parquet", time.Now().UnixNano())
 	out := filepath.Join(s.home, pid, ctxid, basename)
 	if err := os.MkdirAll(filepath.Dir(out), 0755); err != nil {
@@ -173,14 +191,6 @@ func (s *Store) RemoveProviderContext(id peer.ID, ctx []byte) error {
 	return nil
 }
 
-func (s *Store) Size() (int64, error) {
-	return s.delegate.Size()
-}
-
-func (s *Store) Flush() error {
-	return s.delegate.Flush()
-}
-
 func (s *Store) Close() error {
 	defer func() {
 		_ = s.db.Close()
@@ -188,10 +198,7 @@ func (s *Store) Close() error {
 	return s.delegate.Close()
 }
 
-func (s *Store) Iter() (indexer.Iterator, error) {
-	return s.delegate.Iter()
-}
-
-func (s *Store) Stats() (*indexer.Stats, error) {
-	return s.delegate.Stats()
-}
+func (s *Store) Size() (int64, error)            { return s.delegate.Size() }
+func (s *Store) Flush() error                    { return s.delegate.Flush() }
+func (s *Store) Iter() (indexer.Iterator, error) { return s.delegate.Iter() }
+func (s *Store) Stats() (*indexer.Stats, error)  { return s.delegate.Stats() }

@@ -7,7 +7,6 @@ require (
 	github.com/ipni/go-indexer-core v0.8.21
 	github.com/libp2p/go-libp2p v0.38.1
 	github.com/marcboeker/go-duckdb v1.8.5
-	github.com/mr-tron/base58 v1.2.0
 	github.com/multiformats/go-multihash v0.2.3
 	github.com/parquet-go/parquet-go v0.25.0
 	github.com/stretchr/testify v1.10.0
@@ -29,6 +28,7 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/minio/sha256-simd v1.0.1 // indirect
+	github.com/mr-tron/base58 v1.2.0 // indirect
 	github.com/multiformats/go-base32 v0.1.0 // indirect
 	github.com/multiformats/go-base36 v0.2.0 // indirect
 	github.com/multiformats/go-multiaddr v0.14.0 // indirect
