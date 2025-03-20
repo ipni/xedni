@@ -68,6 +68,7 @@ func (s *Store) Sample(ctx context.Context, population Population) ([]multihash.
 	query := fmt.Sprintf(
 		`SELECT Multihash FROM read_parquet('%s') TABLESAMPLE reservoir(%d) REPEATABLE (%d);`,
 		dataset, population.MaxSamples, seed)
+	logger.Debugw("Sampling", "query", query)
 	rows, err := s.db.QueryContext(ctx, query)
 	if err != nil {
 		switch {
