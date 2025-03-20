@@ -18,14 +18,20 @@ func TestSampleHandler(t *testing.T) {
 		expectedBody   string
 	}{
 		{
+			name:           "Valid Request",
+			url:            "/ipni/v0/sample/12D3KooWKTMKoNRJUwdGjuoY3FdtXzARas9UczGsPLw2MgPaLCnh/eW95bw%3D%3D",
+			expectedStatus: http.StatusOK,
+			expectedBody:   `{"samples":[]}`,
+		},
+		{
 			name:           "Invalid Provider ID",
-			url:            "/ipni/v0/sample/invalidProviderID/validContextID",
+			url:            "/ipni/v0/sample/🐡/validContextID",
 			expectedStatus: http.StatusBadRequest,
 			expectedBody:   `{"error":"invalid provider ID"}`,
 		},
 		{
 			name:           "Invalid Context ID",
-			url:            "/ipni/v0/sample/12D3KooWKTMKoNRJUwdGjuoY3FdtXzARas9UczGsPLw2MgPaLCnh/invalidContextID",
+			url:            "/ipni/v0/sample/12D3KooWKTMKoNRJUwdGjuoY3FdtXzARas9UczGsPLw2MgPaLCnh/🐠",
 			expectedStatus: http.StatusBadRequest,
 			expectedBody:   `{"error":"invalid Context ID"}`,
 		},

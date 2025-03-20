@@ -18,7 +18,7 @@ import (
 
 var _ indexer.Interface = (*noopStore)(nil)
 
-func TestT(t *testing.T) {
+func TestPutAndSample(t *testing.T) {
 	out := t.TempDir()
 	subject, err := xedni.NewStore(out, noopStore{})
 	require.NoError(t, err)
@@ -49,7 +49,7 @@ func TestT(t *testing.T) {
 	require.NoError(t, subject.Put(value, mhs...))
 	t.Log("Put Took", time.Since(now))
 
-	decodeString, err := hex.DecodeString("3439d92d58e47d342131d446a3abe264396dd264717897af30525c98408c834f")
+	decodeString, err := hex.DecodeString("3439")
 	require.NoError(t, err)
 
 	now = time.Now()
