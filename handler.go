@@ -2,13 +2,13 @@ package xedni
 
 import (
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"net/http"
 	"strconv"
 
 	"github.com/libp2p/go-libp2p/core/peer"
-	"github.com/mr-tron/base58"
 )
 
 type (
@@ -39,7 +39,7 @@ func (x *Xedni) sampleHandler(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	pop.ContextID, err = base58.Decode(crxidPath)
+	pop.ContextID, err = base64.StdEncoding.DecodeString(crxidPath)
 	if err != nil || len(pop.ContextID) == 0 {
 		x.writeJson(w, http.StatusBadRequest, Error{
 			Error: "invalid Context ID",
