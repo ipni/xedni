@@ -95,5 +95,4 @@ func (noopStore) RemoveProviderContext(peer.ID, []byte) error            { retur
 func (noopStore) Size() (int64, error)                                   { return 0, nil }
 func (noopStore) Flush() error                                           { return nil }
 func (noopStore) Close() error                                           { return nil }
-func (noopStore) Iter() (indexer.Iterator, error)                        { return nil, nil }
 func (noopStore) Stats() (*indexer.Stats, error)                         { return nil, nil }
