@@ -199,7 +199,6 @@ func (s *Store) Close() error {
 	return s.delegate.Close()
 }
 
-func (s *Store) Size() (int64, error)            { return s.delegate.Size() }
-func (s *Store) Flush() error                    { return s.delegate.Flush() }
-func (s *Store) Iter() (indexer.Iterator, error) { return s.delegate.Iter() }
-func (s *Store) Stats() (*indexer.Stats, error)  { return s.delegate.Stats() }
+func (s *Store) Size() (int64, error)           { return s.delegate.Size() }
+func (s *Store) Flush() error                   { return s.delegate.Flush() }
+func (s *Store) Stats() (*indexer.Stats, error) { return s.delegate.Stats() }
